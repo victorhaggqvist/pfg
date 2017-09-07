@@ -20,7 +20,7 @@ type httpError struct {
 	Details []proto.Message `json:"details,omitempty"`
 }
 
-// ErrorDetail message
+// ErrorDetail creates an error with bundled detail messages
 func ErrorDetail(code codes.Code, msg string, details ...proto.Message) error {
 	anys := make([]*any.Any, 0, len(details))
 
@@ -42,14 +42,16 @@ func ErrorDetail(code codes.Code, msg string, details ...proto.Message) error {
 	return status.ErrorProto(&out)
 }
 
-//var internalServerError = httpError{
-//Code:    503,
-//Message: http.StatusText(http.StatusInternalServerError),
-//}
-
 var internalServerErrorBuff = []byte(`{"code":503,"message":"Internal Server Error"}`)
 
 // ErrorHandler for gRPC JSON Gateway runtime
+//
+// Usage
+//
+//	gw := runtime.NewServeMux(
+//		runtime.WithProtoErrorHandler(pfg.ErrorHandler),
+//		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONBuiltin{}),
+//	)
 func ErrorHandler(ctx context.Context, mux *runtime.ServeMux, marshaler runtime.Marshaler, rw http.ResponseWriter, req *http.Request, err error) {
 
 	errStatus, ok := status.FromError(err)
